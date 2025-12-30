@@ -1,0 +1,19 @@
+[package]
+name = "jasper-soete/nodegenerator"
+version = "0.1.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+
+[dependencies]
+Networker = "leifstout/networker@0.3.0"
+Promise = "evaera/promise@4.0.0"
+React = "jsdotlua/react@17.1.0"
+CharmSync = "littensy/charm-sync@0.3.0"
+Charm = "littensy/charm@0.10.0"
+ReactCharm = "littensy/react-charm@0.3.0"
+Sift = "csqrl/sift@0.0.11"
+Signal = "sleitnick/signal@2.0.3"
+DataService = "leifstout/dataservice@0.3.2"
+ReactRoblox = "jsdotlua/react-roblox@17.1.0"
+ReactRodux = "chriscerie/react-redux@0.1.0"
+Rodux = "roblox/rodux@3.0.0"
