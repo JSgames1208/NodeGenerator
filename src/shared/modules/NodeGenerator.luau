@@ -12,8 +12,8 @@ local NodeGenerator = {}
 NodeGenerator.areaWidth = 200
 NodeGenerator.areaHeight = 200
 NodeGenerator.minSpacing = 5
-NodeGenerator.regenMinDelay = 2
-NodeGenerator.regenMaxDelay = 5
+NodeGenerator.regenMinDelay = 1.5
+NodeGenerator.regenMaxDelay = 3
 --NodeGenerator.seed = nil
 
 --------------------------
@@ -352,7 +352,8 @@ function NodeGenerator:visualize()
 			end
 
 			NodeGenerator:removeNode(node.id)
-			NodeGenerator:visualize()
+			NodeParts[node.id] = nil
+			part:Destroy()
 		end)
 
 		NodeParts[node.id] = part
