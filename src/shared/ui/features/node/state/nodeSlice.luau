@@ -4,8 +4,7 @@ local Signal = require(ReplicatedStorage.Packages.Signal)
 local atom: typeof(Charm.atom) = Charm.atom
 type Atom<T> = Charm.Atom<T>
 
-local currentWidth: Atom<number> = atom(10)
-local currentHeight: Atom<number> = atom(10)
+local minSpacing: Atom<number> = atom(10)
 
 local signals = {
 	generate = Signal.new(),
@@ -13,18 +12,14 @@ local signals = {
 }
 
 local actions = {
-	setWidth = function(width: number)
-		currentWidth(tonumber(width))
-	end,
-	setHeight = function(height: number)
-		currentHeight(tonumber(height))
+	setMinSpacing = function(value: number)
+		minSpacing(value)
 	end,
 }
 
 return {
 	states = {
-		currentWidth = currentWidth,
-		currentHeight = currentHeight,
+		minSpacing = minSpacing,
 	},
 	signals = signals,
 	actions = actions,

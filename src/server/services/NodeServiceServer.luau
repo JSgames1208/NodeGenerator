@@ -13,12 +13,16 @@ function NodeServiceServer.init(self: NodeServiceServer): ()
 	})
 end
 
-function NodeServiceServer.generate(self: NodeServiceServer, player: Player): ()
+function NodeServiceServer.generate(self: NodeServiceServer, _player: Player, minSpacing: number): ()
+	NodeGenerator:setMinSpacing(minSpacing)
 	NodeGenerator:generate()
+
+	NodeGenerator:visualize(workspace.NodeFolder)
 end
 
-function NodeServiceServer.cleanup(self: NodeServiceServer): ()
+function NodeServiceServer.cleanup(self: NodeServiceServer, _player: Player): ()
 	NodeGenerator:cleanup()
+	NodeGenerator:visualize(workspace.NodeFolder)
 end
 
 export type NodeServiceServer = typeof(NodeServiceServer) & {

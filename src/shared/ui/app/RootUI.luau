@@ -1,6 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local React = require(ReplicatedStorage.Packages.React)
-local MazeScreen = require(ReplicatedStorage.Shared.ui.features.maze.screens.MazeScreen)
+local NodeScreen = require(ReplicatedStorage.Shared.ui.features.node.screens.NodeScreen)
 local e: typeof(React.createElement) = React.createElement
 
 local function RootUI()
@@ -10,7 +10,7 @@ local function RootUI()
 			ResetOnSpawn = false,
 			ZIndexBehavior = Enum.ZIndexBehavior.Global,
 		}, {
-			e(MazeScreen),
+			e(NodeScreen),
 		}),
 	})
 end

@@ -10,10 +10,11 @@ function NodeServiceClient.init(self: NodeServiceClient): ()
 	self.networker = Networker.client.new("NodeService", self)
 
 	nodeSlice.signals.generate:Connect(function()
-		local width = nodeSlice.states.currentWidth()
-		local height = nodeSlice.states.currentHeight()
+		local minSpacing = nodeSlice.states.minSpacing()
 
-		self:generate(width, height)
+		print(minSpacing)
+
+		self:generate(minSpacing)
 	end)
 
 	nodeSlice.signals.cleanup:Connect(function()
@@ -21,8 +22,8 @@ function NodeServiceClient.init(self: NodeServiceClient): ()
 	end)
 end
 
-function NodeServiceClient.generate(self: NodeServiceClient, width: number, height: number): ()
-	self.networker:fire("generate", width, height)
+function NodeServiceClient.generate(self: NodeServiceClient, minSpacing: number): ()
+	self.networker:fire("generate", minSpacing)
 end
 
 function NodeServiceClient.cleanup(self: NodeServiceClient): ()

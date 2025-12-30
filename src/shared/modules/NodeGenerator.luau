@@ -10,9 +10,8 @@ local Random = Random.new()
 
 local NodeGenerator = {}
 
-NodeGenerator.areaWidth = 50
-NodeGenerator.areaHeight = 50
-NodeGenerator.nodeCount = 20
+NodeGenerator.areaWidth = 100
+NodeGenerator.areaHeight = 100
 NodeGenerator.minSpacing = 5
 NodeGenerator.regenMinDelay = 2
 NodeGenerator.regenMaxDelay = 5
@@ -181,20 +180,24 @@ end
 -- PRIVATE HELPERS
 -------------------------------
 
-function NodeGenerator:_addPoint(): Node?
-	local newPoints =
-		farthestPointSampling(self.areaWidth, self.areaHeight, self.minSpacing, NodePoints, #NodePoints + 1)
+function NodeGenerator:_getNodeAmount(): number
+	return NodeGenerator.areaHeight * NodeGenerator.areaWidth / (NodeGenerator.minSpacing * NodeGenerator.minSpacing)
+end
 
+function NodeGenerator:_addPoint(): Node?
+	local candidates =
+		farthestPointSampling(self.areaWidth, self.areaHeight, self.minSpacing, NodePoints, #NodePoints + 1)
 	local newPoint: Vector2?
-	for _, p in ipairs(newPoints) do
-		local exists = false
+
+	for _, p in ipairs(candidates) do
+		local tooClose = false
 		for _, q in ipairs(NodePoints) do
 			if (p - q).Magnitude < self.minSpacing then
-				exists = true
+				tooClose = true
 				break
 			end
 		end
-		if not exists then
+		if not tooClose then
 			newPoint = p
 			break
 		end
@@ -206,7 +209,6 @@ function NodeGenerator:_addPoint(): Node?
 			id = HttpService:GenerateGUID(false),
 			position = newPoint,
 		}
-
 		table.insert(NodeState, node)
 		return node
 	end
@@ -218,12 +220,13 @@ function NodeGenerator:_startRegen()
 	if RegenActive then
 		return
 	end
+	RegenActive = true
 
 	task.spawn(function()
-		while #NodeState < NodeGenerator.nodeCount do
+		while #NodeState < NodeGenerator:_getNodeAmount() do
 			task.wait(Random:NextNumber(NodeGenerator.regenMinDelay, NodeGenerator.regenMaxDelay))
+			NodeGenerator:_addPoint()
 		end
-
 		RegenActive = false
 	end)
 end
@@ -236,8 +239,16 @@ function NodeGenerator:generate()
 	NodeState = {}
 	NodePoints = {}
 
-	for i = 1, NodeGenerator.nodeCount do
-		NodeGenerator:_addPoint()
+	local newPoints =
+		farthestPointSampling(self.areaWidth, self.areaHeight, self.minSpacing, nil, NodeGenerator:_getNodeAmount())
+
+	for _, newPoint in ipairs(newPoints) do
+		table.insert(NodePoints, newPoint)
+		local node: Node = {
+			id = HttpService:GenerateGUID(false),
+			position = newPoint,
+		}
+		table.insert(NodeState, node)
 	end
 end
 
@@ -280,6 +291,11 @@ end
 
 function NodeGenerator:visualize(parent: Instance)
 	assert(parent, "Parent can't be nil!")
+
+	for _, c in parent:GetChildren() do
+		c:Destroy()
+	end
+
 	for _, node in ipairs(NodeState) do
 		local part = Instance.new("Part")
 		part.Anchored = true
@@ -291,6 +307,10 @@ function NodeGenerator:visualize(parent: Instance)
 		part.Name = node.id
 		part.Parent = parent
 	end
+end
+
+function NodeGenerator:setMinSpacing(minSpacing: number)
+	self.minSpacing = minSpacing
 end
 
 return NodeGenerator
