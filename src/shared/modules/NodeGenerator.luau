@@ -14,7 +14,7 @@ NodeGenerator.areaHeight = 200
 NodeGenerator.minSpacing = 5
 NodeGenerator.regenMinDelay = 2
 NodeGenerator.regenMaxDelay = 5
-NodeGenerator.seed = nil
+--NodeGenerator.seed = nil
 
 --------------------------
 -- INTERNAL STATE
@@ -35,7 +35,7 @@ export type Node = {
 	position: Vector2,
 }
 
---basic maxheap implementation
+--basic maxheap implementation, used in farthest point sampling
 local MaxHeap = {}
 MaxHeap.__index = MaxHeap
 
@@ -95,6 +95,8 @@ function MaxHeap:isEmpty()
 	return #self.items == 0
 end
 
+-- farthest point sampling
+--      numPoints is the TOTAL number of points, so #initialPoints + #newPoints!!
 local function farthestPointSampling(
 	width: number,
 	height: number,
@@ -186,6 +188,7 @@ function NodeGenerator:_getNodeAmount(): number
 	return NodeGenerator.areaHeight * NodeGenerator.areaWidth / (NodeGenerator.minSpacing * NodeGenerator.minSpacing)
 end
 
+-- check if a point already exists
 function NodeGenerator:_pointExists(p: Vector2, pts: { Vector2 }): boolean
 	for _, q in ipairs(pts) do
 		if (p - q).Magnitude < 0.01 then
@@ -303,7 +306,9 @@ function NodeGenerator:cleanup()
 	RegenActive = false
 end
 
--- visualizes nodes, for DEMO purposes
+-- visualizes the generated nodes, used in DEMO
+--      it is completely okay to call this after every addition or removal,
+--      because it checks what nodes are already there
 function NodeGenerator:visualize()
 	local parent = workspace:FindFirstChild("NodeFolder")
 

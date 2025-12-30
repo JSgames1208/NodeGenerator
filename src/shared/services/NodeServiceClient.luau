@@ -11,9 +11,6 @@ function NodeServiceClient.init(self: NodeServiceClient): ()
 
 	nodeSlice.signals.generate:Connect(function()
 		local minSpacing = nodeSlice.states.minSpacing()
-
-		print(minSpacing)
-
 		self:generate(minSpacing)
 	end)
 
