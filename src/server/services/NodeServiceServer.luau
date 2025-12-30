@@ -1,0 +1,28 @@
+--!strict
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Networker = require(ReplicatedStorage.Packages.Networker)
+local NodeGenerator = require(ReplicatedStorage.Shared.modules.NodeGenerator)
+
+local NodeServiceServer = {}
+
+function NodeServiceServer.init(self: NodeServiceServer): ()
+	self.networker = Networker.server.new("NodeService", self, {
+		self.generate :: any,
+		self.cleanup :: any,
+	})
+end
+
+function NodeServiceServer.generate(self: NodeServiceServer, player: Player): ()
+	NodeGenerator:generate()
+end
+
+function NodeServiceServer.cleanup(self: NodeServiceServer): ()
+	NodeGenerator:cleanup()
+end
+
+export type NodeServiceServer = typeof(NodeServiceServer) & {
+	networker: Networker.Server,
+}
+
+return NodeServiceServer :: NodeServiceServer
