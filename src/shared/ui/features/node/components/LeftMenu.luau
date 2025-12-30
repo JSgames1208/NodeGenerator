@@ -30,7 +30,7 @@ local function LeftMenu()
 			e(TextLabel, {
 				Text = "Minimum spacing: ",
 				Font = Enum.Font.FredokaOne,
-				Size = UDim2.new(0.9, 0, 0.12, 0),
+				Size = UDim2.new(0.9, 0, 0.14, 0),
 				Position = UDim2.new(0.5, 0, 0, 0),
 				AnchorPoint = Vector2.new(0.5, 0),
 				TextColor3 = Color3.fromRGB(255, 255, 255),

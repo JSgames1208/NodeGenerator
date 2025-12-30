@@ -1,7 +1,6 @@
 --!strict
 
 local HttpService = game:GetService("HttpService")
-
 local Random = Random.new()
 
 --------------------------
@@ -10,8 +9,8 @@ local Random = Random.new()
 
 local NodeGenerator = {}
 
-NodeGenerator.areaWidth = 100
-NodeGenerator.areaHeight = 100
+NodeGenerator.areaWidth = 200
+NodeGenerator.areaHeight = 200
 NodeGenerator.minSpacing = 5
 NodeGenerator.regenMinDelay = 2
 NodeGenerator.regenMaxDelay = 5
@@ -23,6 +22,8 @@ NodeGenerator.seed = nil
 
 local NodeState: { Node } = {}
 local NodePoints: { Vector2 } = {}
+local NodeParts: { [string]: BasePart } = {}
+
 local RegenActive = false
 
 --------------------------
@@ -180,25 +181,30 @@ end
 -- PRIVATE HELPERS
 -------------------------------
 
+-- calculate the max amount of nodes, based on area and spacing
 function NodeGenerator:_getNodeAmount(): number
 	return NodeGenerator.areaHeight * NodeGenerator.areaWidth / (NodeGenerator.minSpacing * NodeGenerator.minSpacing)
 end
 
-function NodeGenerator:_addPoint(): Node?
-	local candidates =
-		farthestPointSampling(self.areaWidth, self.areaHeight, self.minSpacing, NodePoints, #NodePoints + 1)
-	local newPoint: Vector2?
-
-	for _, p in ipairs(candidates) do
-		local tooClose = false
-		for _, q in ipairs(NodePoints) do
-			if (p - q).Magnitude < self.minSpacing then
-				tooClose = true
-				break
-			end
+function NodeGenerator:_pointExists(p: Vector2, pts: { Vector2 }): boolean
+	for _, q in ipairs(pts) do
+		if (p - q).Magnitude < 0.01 then
+			return true
 		end
-		if not tooClose then
-			newPoint = p
+	end
+	return false
+end
+
+-- incrementally add ONE node using farthest point sampling
+function NodeGenerator:_addPoint(): Node?
+	local old = table.clone(NodePoints)
+
+	local updated = farthestPointSampling(self.areaWidth, self.areaHeight, self.minSpacing, NodePoints, #NodePoints + 1)
+
+	local newPoint: Vector2?
+	for _, cand in ipairs(updated) do
+		if not NodeGenerator:_pointExists(cand, old) then
+			newPoint = cand
 			break
 		end
 	end
@@ -216,6 +222,7 @@ function NodeGenerator:_addPoint(): Node?
 	return nil
 end
 
+-- continuously regenerate nodes until the target amount is reached
 function NodeGenerator:_startRegen()
 	if RegenActive then
 		return
@@ -225,7 +232,9 @@ function NodeGenerator:_startRegen()
 	task.spawn(function()
 		while #NodeState < NodeGenerator:_getNodeAmount() do
 			task.wait(Random:NextNumber(NodeGenerator.regenMinDelay, NodeGenerator.regenMaxDelay))
+
 			NodeGenerator:_addPoint()
+			NodeGenerator:visualize()
 		end
 		RegenActive = false
 	end)
@@ -235,6 +244,7 @@ end
 -- PUBLIC API
 -------------------------------
 
+-- generates nodes in one batch using farthest point sampling
 function NodeGenerator:generate()
 	NodeState = {}
 	NodePoints = {}
@@ -252,6 +262,7 @@ function NodeGenerator:generate()
 	end
 end
 
+-- removes a node and starts regeneration
 function NodeGenerator:removeNode(id: string)
 	local index: number?
 	for i, node in ipairs(NodeState) do
@@ -269,10 +280,12 @@ function NodeGenerator:removeNode(id: string)
 	end
 end
 
+-- returns all nodes
 function NodeGenerator:getNodes(): { Node }
 	return table.clone(NodeState)
 end
 
+-- returns a specific node by id (guid)
 function NodeGenerator:getNode(id: string): Node?
 	for _, node in ipairs(NodeState) do
 		if node.id == id then
@@ -283,32 +296,65 @@ function NodeGenerator:getNode(id: string): Node?
 	return nil
 end
 
+-- removes all nodes
 function NodeGenerator:cleanup()
 	NodeState = {}
 	NodePoints = {}
 	RegenActive = false
 end
 
-function NodeGenerator:visualize(parent: Instance)
-	assert(parent, "Parent can't be nil!")
+-- visualizes nodes, for DEMO purposes
+function NodeGenerator:visualize()
+	local parent = workspace:FindFirstChild("NodeFolder")
 
-	for _, c in parent:GetChildren() do
-		c:Destroy()
+	if not parent then
+		parent = Instance.new("Folder")
+		parent.Name = "NodeFolder"
+		parent.Parent = workspace
+	end
+
+	for id, nodePart in pairs(NodeParts) do
+		if not NodeGenerator:getNode(id) then
+			nodePart:Destroy()
+			NodeParts[id] = nil
+		end
 	end
 
 	for _, node in ipairs(NodeState) do
+		if NodeParts[node.id] then
+			continue
+		end
+
 		local part = Instance.new("Part")
 		part.Anchored = true
 		part.CanCollide = false
-		part.Transparency = 0.5
-		part.Size = Vector3.new(0.5, 0.5, 0.5)
+		part.Transparency = 0
+		part.Size = Vector3.new(1, 1, 1)
 		part.Color = Color3.fromRGB(255, 0, 0)
 		part.Position = Vector3.new(node.position.X, 0, node.position.Y)
 		part.Name = node.id
 		part.Parent = parent
+
+		part.Touched:Connect(function(hit: BasePart)
+			local char = hit:FindFirstAncestorOfClass("Model")
+			if not char then
+				return
+			end
+
+			local node = NodeGenerator:getNode(part.Name)
+			if not node then
+				return
+			end
+
+			NodeGenerator:removeNode(node.id)
+			NodeGenerator:visualize()
+		end)
+
+		NodeParts[node.id] = part
 	end
 end
 
+-- sets the minimum spacing, used in DEMO
 function NodeGenerator:setMinSpacing(minSpacing: number)
 	self.minSpacing = minSpacing
 end
