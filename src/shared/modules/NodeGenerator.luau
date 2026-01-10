@@ -1,5 +1,12 @@
 --!strict
 
+--[[
+EXPLANATION:
+
+This is a 2d node generator, that is useful in simulator games.
+It could be used to randomly distribute coins or chests in an area.
+]]
+
 local HttpService = game:GetService("HttpService")
 local Random = Random.new()
 
